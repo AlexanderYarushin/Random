@@ -2,37 +2,38 @@
 #include <iostream>
 #include <cmath>
 
-#define rand_max 1500000
+#define rand_max 2147483647
 
-static unsigned long long next = 1;
-static unsigned long long a = 5634345;
-static unsigned long long c = 31345;
+static long long next = 1;
 
-unsigned random()
+int random()
 {
-    next = next * a + c;
-    return (next % (rand_max));
-    //return (next % (rand_max)) / (rand_max * 1.0);
+    long long a = 564;
+    long long c = 3;
+    next = (next * a + c) % rand_max;
+    return static_cast<int>(next);
 }
 
 
 static const int N = 100000;
 
-int notRepeat(){
-    unsigned rnd = random();
-    unsigned count = 0;
-    while(random() != rnd){
+int notRepeat(int (*f)()){
+    int rnd = f();
+    int count = 0;
+    while(f() != rnd){
         count++;
     }
     return count;
 }
 
 
-double mathExp(){
+double mathExp(int (*f)()){
+    next = 1;
     double mas[N];
     double sum = 0;
     for(int i = 0; i < N; ++i){
-        mas[i] =  random() / (rand_max * 1.0);
+       if(f == random) mas[i] =  f() / (rand_max * 1.0);
+       if(f == rand) mas[i] =  f() / (RAND_MAX * 1.0);
     }
     for(int i = 0; i < N; ++i){
         sum+=mas[i];
@@ -40,12 +41,13 @@ double mathExp(){
     return sum / N;
 }
 
-double dispersion(){
+double dispersion(int (*f)()){
     double mas[N];
     double sum = 0;
-    double exp = mathExp();
+    double exp = mathExp(random);
     for(int i = 0; i < N; ++i){
-        mas[i] = random() / (rand_max * 1.0);
+       if(f == random) mas[i] = f() / (rand_max * 1.0);
+       if(f == rand) mas[i] = f() / (RAND_MAX * 1.0);
     }
     for(int i = 0; i < N; ++i){
         sum+=pow(mas[i] - exp,2);
@@ -53,15 +55,22 @@ double dispersion(){
     return sum / N;
 }
 
+double standardDeviation(int (*f)()){
+    return sqrt(dispersion(f));
+}
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-
-    std::cout << "Mathematical expectation: " << mathExp() << std::endl;
-    std::cout << "Dispersion: " << dispersion() << std::endl;
-    std::cout << "Without repetition: " << notRepeat() << std::endl;
-
+    std::cout << "Mathematical expectation: " << mathExp(random) << std::endl;
+    std::cout << "Dispersion: " << dispersion(random) << std::endl;
+    std::cout << "Without repetition: " << notRepeat(random) << std::endl;
+    std::cout << "Standard deviation: " << standardDeviation(random) << std::endl;
+    std::cout << "=====================" << std::endl;
+    std::cout << "Mathematical expectation: " << mathExp(rand) << std::endl;
+    std::cout << "Dispersion: " << dispersion(rand) << std::endl;
+    std::cout << "Without repetition: " << notRepeat(rand) << std::endl;
+    std::cout << "Standard deviation: " << standardDeviation(rand) << std::endl;
     return app.exec();
 }
 
